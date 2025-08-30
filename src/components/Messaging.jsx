@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import MessageComposer from "./MessageComposer";
 import MessageHistory from "./MessageHistory";
+import apiClient from "../utils/apiClient";
 
 const Messaging = () => {
   const [channels, setChannels] = useState([]);
@@ -21,11 +22,7 @@ const Messaging = () => {
   const fetchChannels = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/channels");
-      if (!response.ok) {
-        throw new Error("Failed to fetch channels");
-      }
-      const data = await response.json();
+      const data = await apiClient.get("/channels");
       setChannels(data);
     } catch (err) {
       setError("Failed to load channels: " + err.message);
@@ -39,24 +36,10 @@ const Messaging = () => {
       setLoading(true);
       setError("");
       setSuccess("");
-
-      const response = await fetch("/api/send-message", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...messageData,
-          channelId: selectedChannel,
-        }),
+      const result = await apiClient.post("/send-message", {
+        ...messageData,
+        channelId: selectedChannel,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to send message");
-      }
-
-      const result = await response.json();
       setSuccess("Message sent successfully!");
 
       // Clear success message after 3 seconds

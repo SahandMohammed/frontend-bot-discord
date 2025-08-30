@@ -3,12 +3,7 @@ import ChannelSelector from "./ChannelSelector";
 import MessageEditor from "./MessageEditor";
 import MessagePreview from "./MessagePreview";
 import EmojiSelector from "./EmojiSelector";
-
-// API base URL (relative in production to avoid mixed-content)
-const API_BASE_URL =
-  import.meta.env.DEV && import.meta.env.VITE_API_BASE_URL
-    ? import.meta.env.VITE_API_BASE_URL
-    : "/api";
+import apiClient from "../utils/apiClient";
 
 // Default emojis (can be expanded later)
 const defaultEmojis = [
@@ -39,16 +34,11 @@ const DiscordBotController = () => {
   useEffect(() => {
     const fetchChannels = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/channels`);
-        if (response.ok) {
-          const channelsData = await response.json();
-          setChannels(channelsData);
-          if (channelsData.length > 0) {
-            setSelectedChannel(channelsData[0]);
-            setSelectedLogChannel(channelsData[0]);
-          }
-        } else {
-          throw new Error("Failed to fetch channels");
+        const channelsData = await apiClient.get("/channels");
+        setChannels(channelsData);
+        if (channelsData.length > 0) {
+          setSelectedChannel(channelsData[0]);
+          setSelectedLogChannel(channelsData[0]);
         }
       } catch (err) {
         console.error("Error fetching channels:", err);
@@ -80,24 +70,17 @@ const DiscordBotController = () => {
     setSuccess(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/send-message`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: messageTitle,
-          description: messageBody,
-          emoji: selectedEmoji.unicode,
-          channelId: selectedChannel.id,
-          logChannelId: selectedLogChannel.id,
-          messageType: "reaction",
-        }),
+      // This controller sends a reaction message; call the correct endpoint
+      const result = await apiClient.post("/send-reaction-message", {
+        title: messageTitle,
+        description: messageBody,
+        emoji: selectedEmoji.unicode,
+        channelId: selectedChannel.id,
+        logChannelId: selectedLogChannel.id,
+        messageType: "reaction",
       });
 
-      const result = await response.json();
-
-      if (response.ok) {
+      if (result?.success) {
         setSuccess(
           `Message sent to #${selectedChannel.name} with reaction ${selectedEmoji.unicode}. Logs will be sent to #${selectedLogChannel.name}`
         );
@@ -105,7 +88,7 @@ const DiscordBotController = () => {
         setMessageTitle("");
         setMessageBody("");
       } else {
-        throw new Error(result.error || "Failed to send message");
+        throw new Error(result?.error || "Failed to send message");
       }
     } catch (err) {
       console.error("Error sending message:", err);

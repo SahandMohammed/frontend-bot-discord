@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import apiClient from "../utils/apiClient";
 
 const UserMentionSelector = ({ query, onSelect, onClose }) => {
   const [members, setMembers] = useState([]);
@@ -28,17 +29,9 @@ const UserMentionSelector = ({ query, onSelect, onClose }) => {
         loadingRef.current = true;
         setLoading(true);
 
-        const response = await fetch(
-          `/api/members/search?query=${encodeURIComponent(
-            searchQuery
-          )}&page=${pageNum}&limit=10`
+        const data = await apiClient.get(
+          `/members/search?query=${encodeURIComponent(searchQuery)}&page=${pageNum}&limit=10`
         );
-
-        if (!response.ok) {
-          throw new Error("Failed to search members");
-        }
-
-        const data = await response.json();
 
         if (reset || pageNum === 1) {
           setMembers(data.members);

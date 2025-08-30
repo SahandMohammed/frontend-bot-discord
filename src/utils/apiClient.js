@@ -1,7 +1,10 @@
 import { supabase } from "../config/supabase";
 
-// Prefer relative base in production to avoid mixed-content; use env only for dev/overrides
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
+// Prefer relative base in production to avoid mixed-content; use env only in dev
+const API_BASE_URL =
+  import.meta.env.DEV && import.meta.env.VITE_API_BASE_URL
+    ? import.meta.env.VITE_API_BASE_URL
+    : "/api";
 
 class ApiClient {
   async request(endpoint, options = {}) {

@@ -4,9 +4,8 @@ import MessageEditor from "./MessageEditor";
 import MessagePreview from "./MessagePreview";
 import EmojiSelector from "./EmojiSelector";
 
-// API base URL
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api";
+// API base URL (relative to avoid mixed-content in production)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
 // Default emojis (can be expanded later)
 const defaultEmojis = [
